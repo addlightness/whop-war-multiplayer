@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer War Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .waiting { background-color: #fff3cd; color: #856404; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .primary { background-color: #007bff; color: white; }
+        .success { background-color: #28a745; color: white; }
+        .danger { background-color: #dc3545; color: white; }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .game-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+        }
+        .player {
+            text-align: center;
+        }
+        .card {
+            width: 80px;
+            height: 120px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+        .card.face-down {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🃏 Multiplayer War Test</h1>
+    
+    <div id="status" class="status disconnected">
+        Disconnected
+    </div>
+    
+    <div id="lobby" style="display: block;">
+        <h2>Choose Game Mode</h2>
+        <button class="primary" onclick="joinQueue()">⚡ Quick Match</button>
+        <button class="success" onclick="createGame()">🔒 Create Private Game</button>
+        
+        <div style="margin-top: 20px;">
+            <h3>Or Join with Code:</h3>
+            <input type="text" id="joinCode" placeholder="Enter 6-character code" maxlength="6">
+            <button class="success" onclick="joinGame()">Join Game</button>
+        </div>
+    </div>
+    
+    <div id="waiting" style="display: none;">
+        <h2>⏳ Waiting for Opponent...</h2>
+        <div id="waitingMessage"></div>
+        <div id="joinCodeDisplay" style="display: none;">
+            <h3>Share this code:</h3>
+            <div style="font-size: 24px; font-weight: bold; font-family: monospace;" id="codeDisplay"></div>
+        </div>
+    </div>
+    
+    <div id="game" style="display: none;">
+        <h2>🎮 Game in Progress</h2>
+        <div id="gameMessage"></div>
+        <div id="turnIndicator"></div>
+        
+        <div class="game-board">
+            <div class="player">
+                <h3 id="player1Name">Player 1</h3>
+                <div>Cards: <span id="player1Cards">26</span></div>
+                <div class="card" id="player1Card">?</div>
+                <div id="player1WarCards"></div>
+            </div>
+            <div class="player">
+                <h3>VS</h3>
+                <div id="warIndicator" style="display: none; color: red; font-weight: bold;">⚔️ WAR!</div>
+            </div>
+            <div class="player">
+                <h3 id="player2Name">Player 2</h3>
+                <div>Cards: <span id="player2Cards">26</span></div>
+                <div class="card" id="player2Card">?</div>
+                <div id="player2WarCards"></div>
+            </div>
+        </div>
+        
+        <div id="gameActions">
+            <button class="primary" onclick="drawCard()">🎯 Draw Card</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let playerId = 'test_player_' + Math.random().toString(36).substr(2, 9);
+        let playerName = 'Test Player';
+        let gameState = null;
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:3001');
+            
+            ws.onopen = () => {
+                updateStatus('Connected', 'connected');
+                console.log('Connected to WebSocket server');
+            };
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                console.log('Received:', message);
+                handleMessage(message);
+            };
+            
+            ws.onclose = () => {
+                updateStatus('Disconnected', 'disconnected');
+                console.log('WebSocket connection closed');
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('Error', 'disconnected');
+            };
+        }
+
+        function handleMessage(message) {
+            switch (message.type) {
+                case 'queue_joined':
+                    showWaiting('Waiting for opponent...');
+                    break;
+                case 'game_created':
+                    showWaiting('Game created! Share the code below.');
+                    document.getElementById('joinCodeDisplay').style.display = 'block';
+                    document.getElementById('codeDisplay').textContent = message.data.joinCode;
+                    break;
+                case 'game_update':
+                    gameState = message.data;
+                    showGame();
+                    updateGameDisplay();
+                    break;
+                case 'opponent_disconnected':
+                    showLobby();
+                    alert('Your opponent has disconnected.');
+                    break;
+                case 'error':
+                    alert('Error: ' + message.data.message);
+                    break;
+            }
+        }
+
+        function sendMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+            }
+        }
+
+        function joinQueue() {
+            sendMessage({
+                type: 'join_queue',
+                data: { playerId, name: playerName }
+            });
+        }
+
+        function createGame() {
+            sendMessage({
+                type: 'create_game',
+                data: { playerId, name: playerName }
+            });
+        }
+
+        function joinGame() {
+            const code = document.getElementById('joinCode').value.trim().toUpperCase();
+            if (code.length === 6) {
+                sendMessage({
+                    type: 'join_game',
+                    data: { playerId, name: playerName, joinCode: code }
+                });
+            } else {
+                alert('Please enter a 6-character code');
+            }
+        }
+
+        function drawCard() {
+            sendMessage({
+                type: 'game_action',
+                data: { action: 'draw_card' }
+            });
+        }
+
+        function updateStatus(text, className) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = `status ${className}`;
+        }
+
+        function showLobby() {
+            document.getElementById('lobby').style.display = 'block';
+            document.getElementById('waiting').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+        }
+
+        function showWaiting(message) {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('waiting').style.display = 'block';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('waitingMessage').textContent = message;
+        }
+
+        function showGame() {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('waiting').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+        }
+
+        function updateGameDisplay() {
+            if (!gameState) return;
+
+            document.getElementById('player1Name').textContent = gameState.player1Name;
+            document.getElementById('player2Name').textContent = gameState.player2Name;
+            document.getElementById('player1Cards').textContent = gameState.player1Deck;
+            document.getElementById('player2Cards').textContent = gameState.player2Deck;
+            document.getElementById('gameMessage').textContent = gameState.message;
+
+            // Update cards
+            const player1Card = document.getElementById('player1Card');
+            const player2Card = document.getElementById('player2Card');
+            
+            if (gameState.player1Card) {
+                player1Card.textContent = gameState.player1Card.name.replace('_', ' ').toUpperCase();
+                player1Card.className = 'card';
+            } else {
+                player1Card.textContent = '?';
+                player1Card.className = 'card face-down';
+            }
+
+            if (gameState.player2Card) {
+                player2Card.textContent = gameState.player2Card.name.replace('_', ' ').toUpperCase();
+                player2Card.className = 'card';
+            } else {
+                player2Card.textContent = '?';
+                player2Card.className = 'card face-down';
+            }
+
+            // Update war cards
+            const player1WarCards = document.getElementById('player1WarCards');
+            const player2WarCards = document.getElementById('player2WarCards');
+            
+            player1WarCards.innerHTML = '';
+            player2WarCards.innerHTML = '';
+
+            if (gameState.player1WarCards && gameState.player1WarCards.length > 0) {
+                gameState.player1WarCards.forEach(() => {
+                    const card = document.createElement('div');
+                    card.className = 'card face-down';
+                    card.textContent = '?';
+                    player1WarCards.appendChild(card);
+                });
+            }
+
+            if (gameState.player2WarCards && gameState.player2WarCards.length > 0) {
+                gameState.player2WarCards.forEach(() => {
+                    const card = document.createElement('div');
+                    card.className = 'card face-down';
+                    card.textContent = '?';
+                    player2WarCards.appendChild(card);
+                });
+            }
+
+            // Update war indicator
+            const warIndicator = document.getElementById('warIndicator');
+            if (gameState.gameStatus === 'war') {
+                warIndicator.style.display = 'block';
+            } else {
+                warIndicator.style.display = 'none';
+            }
+
+            // Update turn indicator
+            const turnIndicator = document.getElementById('turnIndicator');
+            if (gameState.gameStatus === 'playing' || gameState.gameStatus === 'war') {
+                const isMyTurn = gameState.currentPlayer === 'player1' && gameState.player1Name === playerName ||
+                                gameState.currentPlayer === 'player2' && gameState.player2Name === playerName;
+                
+                if (isMyTurn) {
+                    turnIndicator.innerHTML = '<div style="color: green; font-weight: bold;">🎯 Your Turn</div>';
+                } else {
+                    turnIndicator.innerHTML = '<div style="color: gray;">⏳ Waiting for opponent</div>';
+                }
+            } else {
+                turnIndicator.innerHTML = '';
+            }
+
+            // Update game actions
+            const gameActions = document.getElementById('gameActions');
+            if (gameState.gameStatus === 'finished') {
+                gameActions.innerHTML = '<button class="success" onclick="location.reload()">🔄 Play Again</button>';
+            } else if (gameState.gameStatus === 'playing' || gameState.gameStatus === 'war') {
+                const isMyTurn = gameState.currentPlayer === 'player1' && gameState.player1Name === playerName ||
+                                gameState.currentPlayer === 'player2' && gameState.player2Name === playerName;
+                
+                if (isMyTurn) {
+                    const buttonText = gameState.gameStatus === 'war' ? '⚔️ Resolve War' : '🎯 Draw Card';
+                    gameActions.innerHTML = `<button class="primary" onclick="drawCard()">${buttonText}</button>`;
+                } else {
+                    gameActions.innerHTML = '<div style="color: gray;">Waiting for opponent...</div>';
+                }
+            }
+        }
+
+        // Connect when page loads
+        connect();
+    </script>
+</body>
+</html>
