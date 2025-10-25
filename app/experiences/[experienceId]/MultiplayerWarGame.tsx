@@ -277,7 +277,7 @@ export function MultiplayerWarGame() {
 					<div className="text-lg font-bold text-blue-600">{state.player1Name}</div>
 					<Card
 						card={state.player1Card}
-						isFaceUp={state.gameStatus !== "waiting"}
+						isFaceUp={true}
 						player="player1"
 						playerName={state.player1Name}
 						className="transform hover:scale-105 transition-transform"
@@ -312,7 +312,7 @@ export function MultiplayerWarGame() {
 					<div className="text-lg font-bold text-red-600">{state.player2Name}</div>
 					<Card
 						card={state.player2Card}
-						isFaceUp={state.gameStatus !== "waiting"}
+						isFaceUp={true}
 						player="player2"
 						playerName={state.player2Name}
 						className="transform hover:scale-105 transition-transform"

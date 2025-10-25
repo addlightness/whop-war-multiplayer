@@ -387,20 +387,21 @@ wss.on('connection', (ws: WebSocket, req) => {
           if (message.data?.playerId && message.data?.name) {
             playerId = message.data.playerId;
             const player: Player = {
-              id: playerId,
+              id: message.data.playerId,
               name: message.data.name,
               ws
             };
             
-            playerConnections.set(playerId, ws);
+            playerConnections.set(message.data.playerId, ws);
             
             // Check if there's someone in queue
             if (queue.size > 0) {
               const waitingPlayerId = queue.values().next().value;
-              queue.delete(waitingPlayerId);
-              
-              const waitingPlayer = playerConnections.get(waitingPlayerId);
-              if (waitingPlayer) {
+              if (waitingPlayerId) {
+                queue.delete(waitingPlayerId);
+                
+                const waitingPlayer = playerConnections.get(waitingPlayerId);
+                if (waitingPlayer) {
                 const waitingPlayerData: Player = {
                   id: waitingPlayerId,
                   name: message.data.waitingPlayerName || 'Player',
@@ -409,9 +410,10 @@ wss.on('connection', (ws: WebSocket, req) => {
                 
                 const game = startGame(waitingPlayerData, player);
                 broadcastToGame(game, null);
+                }
               }
             } else {
-              queue.add(playerId);
+              queue.add(message.data.playerId);
               ws.send(JSON.stringify({
                 type: 'queue_joined',
                 data: { message: 'Waiting for opponent...' }
@@ -424,12 +426,12 @@ wss.on('connection', (ws: WebSocket, req) => {
           if (message.data?.playerId && message.data?.name) {
             playerId = message.data.playerId;
             const player: Player = {
-              id: playerId,
+              id: message.data.playerId,
               name: message.data.name,
               ws
             };
             
-            playerConnections.set(playerId, ws);
+            playerConnections.set(message.data.playerId, ws);
             
             const joinCode = generateJoinCode();
             const game = startGame(player, player, joinCode);
@@ -452,12 +454,12 @@ wss.on('connection', (ws: WebSocket, req) => {
               const game = games.get(gameId)!;
               if (game.gameStatus === 'waiting') {
                 const player: Player = {
-                  id: playerId,
+                  id: message.data.playerId,
                   name: message.data.name,
                   ws
                 };
                 
-                playerConnections.set(playerId, ws);
+                playerConnections.set(message.data.playerId, ws);
                 game.player2 = player;
                 game.gameStatus = 'playing';
                 game.message = 'Game started! Player 1 goes first.';
