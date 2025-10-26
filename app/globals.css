@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 body {
-  background: #ffffff;
+  background: linear-gradient(135deg, #2d5016 0%, #1a3d0a 100%);
+  min-height: 100vh;
   color: #1f2937;
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -17,4 +18,216 @@ html {
 .dark {
   background: #ffffff !important;
   color: #1f2937 !important;
+}
+
+/* Poker Table Felt Background */
+.poker-table {
+  background: linear-gradient(135deg, #0d5c0d 0%, #1a7a1a 100%);
+  position: relative;
+  border-radius: 20px;
+  box-shadow: 
+    inset 0 0 100px rgba(0, 0, 0, 0.3),
+    0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 8px solid #4a2c15;
+  width: 95%;
+  margin: 2rem auto;
+  border-image: linear-gradient(135deg, #6b4a3a, #8b6a4a, #6b4a3a) 1;
+}
+
+/* Wood Grain Border Effect */
+.poker-table::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 106, 74, 0.1) 2px,
+      rgba(139, 106, 74, 0.1) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(107, 74, 58, 0.15) 2px,
+      rgba(107, 74, 58, 0.15) 4px
+    );
+  border-radius: 20px;
+  z-index: -1;
+  box-shadow: 
+    0 0 0 2px #5a3d2a,
+    0 0 0 4px #6b4a3a,
+    0 0 0 6px #5a3d2a,
+    inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Flip Animation */
+@keyframes cardFlip {
+  0% {
+    transform: perspective(600px) rotateY(0deg);
+  }
+  50% {
+    transform: perspective(600px) rotateY(90deg);
+  }
+  100% {
+    transform: perspective(600px) rotateY(0deg);
+  }
+}
+
+.card-flip {
+  animation: cardFlip 0.6s ease-in-out;
+}
+
+/* Card Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.card-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Game Background Glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.poker-table-pulse {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Score Board Styling */
+.score-board {
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px solid #8b6a4a;
+  border-radius: 15px;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    inset 0 0 10px rgba(139, 106, 74, 0.1);
+}
+
+/* Action Button Styles */
+.action-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 
+    0 4px 15px rgba(102, 126, 234, 0.4),
+    inset 0 -2px 10px rgba(118, 75, 162, 0.3);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(102, 126, 234, 0.6),
+    inset 0 -2px 10px rgba(118, 75, 162, 0.3);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+/* Lobby Card Styles */
+.lobby-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 3px solid #8b6a4a;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    inset 0 0 20px rgba(139, 106, 74, 0.1);
+  transition: all 0.3s ease;
+}
+
+.lobby-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    inset 0 0 20px rgba(139, 106, 74, 0.2);
+}
+
+/* War Text Animation */
+@keyframes warPulse {
+  0%, 100% {
+    transform: scale(1);
+    color: #dc2626;
+  }
+  50% {
+    transform: scale(1.05);
+    color: #ef4444;
+  }
+}
+
+.war-text {
+  animation: warPulse 1s ease-in-out infinite;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+}
+
+/* Winning Celebration */
+@keyframes celebration {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+.celebration {
+  animation: celebration 0.5s ease-in-out infinite;
+}
+
+/* Card Glow on Hover */
+.card-glow:hover {
+  box-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 40px rgba(255, 215, 0, 0.4);
+  transform: translateY(-8px) scale(1.05);
+  transition: all 0.3s ease;
+}
+
+/* VS Text Styling */
+.vs-text {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Turn Indicator */
+.turn-indicator {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(21, 128, 61, 0.9));
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 4px 15px rgba(34, 197, 94, 0.4),
+    inset 0 0 20px rgba(34, 197, 94, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.waiting-indicator {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.9), rgba(107, 114, 128, 0.9));
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 4px 15px rgba(156, 163, 175, 0.4),
+    inset 0 0 20px rgba(156, 163, 175, 0.2);
 }

@@ -24,16 +24,7 @@ export default async function ExperiencePage({
 
 	return (
 		<MultiplayerGameProvider userId={userId} userName={displayName}>
-			<div className="flex flex-col p-8 gap-6">
-				<div className="text-center">
-					<h1 className="text-6xl font-bold text-blue-800 mb-2">
-						🃏 Multiplayer War
-					</h1>
-					<p className="text-xl text-gray-700">
-						Welcome, <strong>{displayName}</strong>!
-					</p>
-				</div>
-
+			<div className="min-h-screen py-8">
 				<MultiplayerWarGame />
 			</div>
 		</MultiplayerGameProvider>

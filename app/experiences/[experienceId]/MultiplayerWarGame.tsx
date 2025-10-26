@@ -5,7 +5,7 @@ import { useMultiplayerGame } from "@/lib/multiplayerGameContext";
 import { Card } from "@/app/components/Card";
 
 export function MultiplayerWarGame() {
-	const { state, sendMessage } = useMultiplayerGame();
+	const { state, sendMessage, dispatch } = useMultiplayerGame();
 	const [joinCodeInput, setJoinCodeInput] = useState("");
 
 	const handleQuickMatch = () => {
@@ -117,25 +117,26 @@ export function MultiplayerWarGame() {
 	// Lobby screen
 	if (state.gameStatus === "lobby") {
 		return (
-			<div className="max-w-4xl mx-auto">
+			<div className="poker-table poker-table-pulse p-8 max-w-5xl mx-auto">
+				{/* Title */}
 				<div className="text-center mb-8">
-					<h1 className="text-4xl font-bold text-blue-800 mb-4">
+					<h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
 						🃏 Multiplayer War
 					</h1>
-					<p className="text-xl text-gray-700 mb-6">
+					<p className="text-xl text-white">
 						{state.message}
 					</p>
-
-					{!state.isConnected && (
-						<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-							Disconnected from server. Please refresh the page.
-						</div>
-					)}
 				</div>
+
+				{!state.isConnected && (
+					<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+						Disconnected from server. Please refresh the page.
+					</div>
+				)}
 
 				<div className="grid md:grid-cols-2 gap-8">
 					{/* Quick Match */}
-					<div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+					<div className="lobby-card rounded-lg p-6">
 						<h3 className="text-2xl font-bold text-blue-800 mb-4">⚡ Quick Match</h3>
 						<p className="text-gray-700 mb-6">
 							Join the matchmaking queue and play against a random opponent.
@@ -150,7 +151,7 @@ export function MultiplayerWarGame() {
 					</div>
 
 					{/* Private Game */}
-					<div className="bg-green-50 rounded-lg p-6 border border-green-200">
+					<div className="lobby-card rounded-lg p-6">
 						<h3 className="text-2xl font-bold text-green-800 mb-4">🔒 Private Game</h3>
 						<p className="text-gray-700 mb-4">
 							Create a private game and share the code with a friend.
@@ -164,14 +165,14 @@ export function MultiplayerWarGame() {
 						</button>
 
 						<div className="border-t border-green-300 pt-4">
-							<p className="text-gray-700 mb-2">Or join with a code:</p>
+							<p className="text-white mb-2">Or join with a code:</p>
 							<div className="flex gap-2">
 								<input
 									type="text"
 									value={joinCodeInput}
 									onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
 									placeholder="Enter code"
-									className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+									className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400"
 									maxLength={6}
 								/>
 								<button
@@ -198,6 +199,7 @@ export function MultiplayerWarGame() {
 						<p>• Game ends when one player runs out of cards</p>
 					</div>
 				</div>
+
 			</div>
 		);
 	}
@@ -228,10 +230,17 @@ export function MultiplayerWarGame() {
 
 	// Game screen
 	return (
-		<div className="max-w-6xl mx-auto">
+		<div className="poker-table poker-table-pulse p-8 max-w-7xl mx-auto">
+			{/* Title */}
+			<div className="text-center mb-6">
+				<h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+					🃏 Multiplayer War
+				</h1>
+			</div>
+
 			{/* Game Status */}
 			<div className="text-center mb-6">
-				<div className="text-2xl font-bold text-blue-600 mb-2">
+				<div className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
 					{state.message}
 				</div>
 
@@ -243,16 +252,16 @@ export function MultiplayerWarGame() {
 
 				{/* Turn Indicator */}
 				{state.gameStatus === "playing" && (
-					<div className={`text-xl font-bold mb-4 px-4 py-2 rounded-lg ${isMyTurn()
-						? 'bg-green-100 text-green-800 border border-green-300'
-						: 'bg-gray-100 text-gray-600 border border-gray-300'
+					<div className={`text-xl font-bold mb-4 px-6 py-3 rounded-lg ${isMyTurn()
+						? 'turn-indicator text-white'
+						: 'waiting-indicator text-white'
 						}`}>
 						{isMyTurn() ? '🎯 Your Turn' : '⏳ Waiting for opponent'}
 					</div>
 				)}
 
 				{state.gameStatus === "war" && (
-					<div className="text-xl font-bold mb-4 text-red-600 bg-red-50 px-4 py-2 rounded-lg border border-red-300">
+					<div className="text-xl font-bold mb-4 war-text px-6 py-3 rounded-lg bg-red-100 border-2 border-red-400">
 						⚔️ WAR! {isMyTurn() ? 'Your turn to resolve' : 'Waiting for opponent'}
 					</div>
 				)}
@@ -260,13 +269,13 @@ export function MultiplayerWarGame() {
 
 			{/* Score Board */}
 			<div className="flex justify-center gap-8 mb-8">
-				<div className="text-center">
+				<div className="score-board text-center px-6 py-4">
 					<div className="text-2xl font-bold text-blue-600">{state.player1Name}</div>
-					<div className="text-lg">{state.player1Deck} cards</div>
+					<div className="text-lg font-bold text-gray-700">{state.player1Deck} cards</div>
 				</div>
-				<div className="text-center">
+				<div className="score-board text-center px-6 py-4">
 					<div className="text-2xl font-bold text-red-600">{state.player2Name}</div>
-					<div className="text-lg">{state.player2Deck} cards</div>
+					<div className="text-lg font-bold text-gray-700">{state.player2Deck} cards</div>
 				</div>
 			</div>
 
@@ -274,13 +283,12 @@ export function MultiplayerWarGame() {
 			<div className="flex justify-center items-center gap-12 mb-8">
 				{/* Player 1 */}
 				<div className="flex flex-col items-center gap-4">
-					<div className="text-lg font-bold text-blue-600">{state.player1Name}</div>
 					<Card
 						card={state.player1Card}
 						isFaceUp={true}
 						player="player1"
 						playerName={state.player1Name}
-						className="transform hover:scale-105 transition-transform"
+						className="transform hover:scale-105 transition-transform card-glow"
 					/>
 					{state.gameStatus === "war" && state.player1WarCards.length > 0 && (
 						<div className="flex gap-2">
@@ -299,7 +307,7 @@ export function MultiplayerWarGame() {
 				</div>
 
 				<div className="text-center">
-					<div className="text-3xl font-bold text-gray-700 mb-4">VS</div>
+					<div className="vs-text text-5xl font-bold text-white mb-4 drop-shadow-lg">VS</div>
 					{state.gameStatus === "war" && (
 						<div className="text-xl font-bold text-red-600 animate-pulse">
 							⚔️ WAR! ⚔️
@@ -309,13 +317,12 @@ export function MultiplayerWarGame() {
 
 				{/* Player 2 */}
 				<div className="flex flex-col items-center gap-4">
-					<div className="text-lg font-bold text-red-600">{state.player2Name}</div>
 					<Card
 						card={state.player2Card}
 						isFaceUp={true}
 						player="player2"
 						playerName={state.player2Name}
-						className="transform hover:scale-105 transition-transform"
+						className="transform hover:scale-105 transition-transform card-glow"
 					/>
 					{state.gameStatus === "war" && state.player2WarCards.length > 0 && (
 						<div className="flex gap-2">
@@ -335,11 +342,11 @@ export function MultiplayerWarGame() {
 			</div>
 
 			{/* Action Buttons */}
-			<div className="flex justify-center gap-4">
+			<div className="flex justify-center gap-4 mt-8">
 				{(state.gameStatus === "playing" || state.gameStatus === "war") && isMyTurn() && (
 					<button
 						onClick={handleDrawCard}
-						className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-lg"
+						className="action-button text-white px-10 py-4 text-xl rounded-lg font-bold"
 					>
 						{state.gameStatus === "war" ? "⚔️ Resolve War" : "🎯 Draw Card"}
 					</button>
@@ -348,7 +355,7 @@ export function MultiplayerWarGame() {
 				{state.gameStatus === "finished" && (
 					<button
 						onClick={handleResetGame}
-						className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg rounded-lg"
+						className="action-button text-white px-10 py-4 text-xl rounded-lg font-bold"
 					>
 						🔄 Play Again
 					</button>
