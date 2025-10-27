@@ -308,7 +308,8 @@ function cleanupPlayer(playerId) {
     }
 }
 // WebSocket Server
-const wss = new ws_1.WebSocketServer({ port: 3001 });
+const port = process.env.PORT || 3001;
+const wss = new ws_1.WebSocketServer({ port });
 wss.on('connection', (ws, req) => {
     console.log('New WebSocket connection');
     let playerId = null;
@@ -440,4 +441,4 @@ wss.on('connection', (ws, req) => {
         }
     });
 });
-console.log('WebSocket server running on port 3001');
+console.log(`WebSocket server running on port ${port}`);
