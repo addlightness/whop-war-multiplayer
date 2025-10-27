@@ -182,8 +182,9 @@ export function MultiplayerGameProvider({
 	};
 
 	useEffect(() => {
-		// Connect to WebSocket server
-		const ws = new WebSocket('ws://localhost:3001');
+		// Connect to WebSocket server - use production URL if available, otherwise localhost
+		const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
+		const ws = new WebSocket(wsUrl);
 		wsRef.current = ws;
 
 		ws.onopen = () => {
