@@ -183,7 +183,18 @@ export function MultiplayerGameProvider({
 
 	useEffect(() => {
 		// Connect to WebSocket server - use production URL if available, otherwise localhost
-		const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
+		let wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
+
+		// Auto-convert ws:// to wss:// if we're on HTTPS (production)
+		if (typeof window !== 'undefined' && window.location.protocol === 'https:' && wsUrl.startsWith('ws://')) {
+			wsUrl = wsUrl.replace('ws://', 'wss://');
+		}
+
+		// Use Fly.io URL if no env var is set and we're in production
+		if (!process.env.NEXT_PUBLIC_WEBSOCKET_URL && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+			wsUrl = 'wss://whop-war-websocket.fly.dev';
+		}
+
 		const ws = new WebSocket(wsUrl);
 		wsRef.current = ws;
 
